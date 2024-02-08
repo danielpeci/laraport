@@ -1,0 +1,53 @@
+version: '3.8'
+
+networks:
+    laravel:
+        driver: bridge
+
+services:
+    web:
+        container_name: web-server
+        image: nginx:latest
+        ports:
+            - "8000:80"
+        volumes:
+            - ./:/var/www/html:cached
+            - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+            - app
+            - mysql
+        networks:
+            - laravel
+
+    app:
+        container_name: laraport
+        build:
+            context: .
+            dockerfile: Docker/Dockerfile.dockerfile
+        volumes:
+            - ./:/var/www/html:cached
+        depends_on:
+            - mysql
+        networks:
+            - laravel
+
+    mysql:
+        container_name: db
+        image: mysql:latest
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_PASSWORD: root
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_DATABASE: laraport
+        networks:
+            - laravel
+
+
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+            - "8080:8080"
+        networks:
+            - laravel
